@@ -1,5 +1,5 @@
 const baseCoordinates = "461331061130";
-const format = "+46°13'31'' +06°11'30''";
+const format = "Klaus Schwab coordinates : +46°13'31'' +06°11'30''";
 
 document.querySelector('button').onclick = () => {
 	createLinks();
@@ -36,6 +36,8 @@ const valid = (c) => {
 	return fail;
 }
 
+var markers = new Array();
+
 const linkToMap = (c) => {
 	const gowest = getRandomInt(2) == 0 ? "+" : "-";
 	const gosouth = getRandomInt(2) == 0 ? "+" : "-";
@@ -51,6 +53,8 @@ const linkToMap = (c) => {
 	const a = document.createElement('a');
 	const li = document.createElement('li');
 	
+	markers.push(createmarker(c, gowest === "+", gosouth === "-"));
+	
 	const formatted = gosouth + nc_y_r1 + "°" + nc_y_r2 + "'" + nc_y_r3 + "'' " + gowest + nc_x_r1 + "°" + nc_x_r2 + "'" + nc_x_r3 + "''";
 	a.innerText = formatted;
 	
@@ -61,15 +65,18 @@ const linkToMap = (c) => {
 	return li;
 }
 
-document.querySelector('h1.base-coordinates').innerText = format;
+document.querySelector('b.base-coordinates').innerText = format;
 
 const createLinks = () => {
 	
-	document.querySelector('ul').innerHTML = '';
+	markers = new Array();
+	clearl();
+	
+	document.querySelector('ul.list').innerHTML = '';
 	
 	let newCoordinates = new Array();
 
-	for (let i = 0; i < 10; i++){
+	for (let i = 0; i < document.querySelector("input#dddd").value; i++){
 		let n = baseCoordinates;
 		n = n.shuffle();
 		while (valid(n)) {
@@ -80,6 +87,57 @@ const createLinks = () => {
 
 	newCoordinates.forEach(x => {
 		const newE = linkToMap(x);
-		document.querySelector('ul').append(newE);
+		document.querySelector('ul.list').append(newE);
 	});
+	
+	markers.forEach(m => {
+	markerLayer.getSource().addFeature(m);
+});
 }
+
+const x_dms2dd = (dms, neg) => {
+	const first = dms[0] + dms[1] + ".";
+	const second = (parseFloat(dms[2] + dms[3]) + (parseFloat(dms[4] + dms[5]) / 60)) / 60;
+	const isneg = (neg === true ? -1 : 1);
+	return parseFloat(first + second) * isneg;
+}
+
+const y_dms2dd = (dms, neg) => {
+	const first = dms[6] + dms[7] + ".";
+	const second = (parseFloat(dms[8] + dms[9]) + (parseFloat(dms[10] + dms[11]) / 60)) / 60;
+	const isneg = (neg === true ? -1 : 1);
+	return parseFloat(first + second) * -isneg;
+}
+
+const createmarker = (c, gw, gs) => {
+	return new ol.Feature(new ol.geom.Point(ol.proj.fromLonLat([y_dms2dd(c, gw), x_dms2dd(c, gs)])));
+}
+
+var map = new ol.Map({
+  target: 'map',
+  layers: [
+    new ol.layer.Tile({
+      source: new ol.source.OSM()
+    })
+  ],
+  view: new ol.View({
+    center: ol.proj.fromLonLat([0, 20]),
+    zoom: 1
+  })
+});
+
+var markerLayer = new ol.layer.Vector({
+  source: new ol.source.Vector(),
+  style: new ol.style.Style({
+    image: new ol.style.Icon({
+      anchor: [0.5, 1],
+      src: 'marker.png'
+    })
+  })
+});
+
+const clearl = () => {
+	markerLayer.getSource().clear();
+}
+
+map.addLayer(markerLayer);
