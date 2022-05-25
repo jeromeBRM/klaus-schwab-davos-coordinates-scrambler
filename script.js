@@ -22,10 +22,21 @@ function getRandomInt(max) {
   return Math.floor(Math.random() * max);
 }
 
-const linkToMap = (c) => {
-	const a = document.createElement('a');
-	const li = document.createElement('li');
+const valid = (c) => {
+	const nc_y_r1 = c[0] + c[1];
+	const nc_y_r2 = c[2] + c[3];
+	const nc_y_r3 = c[4] + c[5];
 	
+	const nc_x_r1 = c[6] + c[7];
+	const nc_x_r2 = c[8] + c[9];
+	const nc_x_r3 = c[10] + c[11];
+	
+	const fail = parseInt(nc_x_r2, 10) > 60 || parseInt(nc_x_r3, 10) > 60 || parseInt(nc_y_r2, 10) > 60 || parseInt(nc_y_r3, 10) > 60;
+	
+	return fail;
+}
+
+const linkToMap = (c) => {
 	const gowest = getRandomInt(2) == 0 ? "+" : "-";
 	const gosouth = getRandomInt(2) == 0 ? "+" : "-";
 	
@@ -36,6 +47,9 @@ const linkToMap = (c) => {
 	const nc_x_r1 = c[6] + c[7];
 	const nc_x_r2 = c[8] + c[9];
 	const nc_x_r3 = c[10] + c[11];
+	
+	const a = document.createElement('a');
+	const li = document.createElement('li');
 	
 	const formatted = gosouth + nc_y_r1 + "°" + nc_y_r2 + "'" + nc_y_r3 + "'' " + gowest + nc_x_r1 + "°" + nc_x_r2 + "'" + nc_x_r3 + "''";
 	a.innerText = formatted;
@@ -58,6 +72,9 @@ const createLinks = () => {
 	for (let i = 0; i < 10; i++){
 		let n = baseCoordinates;
 		n = n.shuffle();
+		while (valid(n)) {
+			n = n.shuffle();
+		}
 		newCoordinates.push(n);
 	}
 
